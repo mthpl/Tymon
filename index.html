@@ -1,193 +1,100 @@
 <!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Chrzest Tymona</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Szyfrowanie zdjęć – narzędzie lokalne</title>
 <style>
-:root{--g1:#a47c2a;--g2:#e9d18f;--g3:#c9a54e;--paper:#fffdf8}
-*{box-sizing:border-box;margin:0}
-html,body{min-height:100%}
-body{font-family:'Cormorant Garamond',serif;background:radial-gradient(ellipse at 50% 0,#eef5fc,#fff 55%,#fbf8f1);color:var(--g1);overflow-x:hidden}
-.gold{background:linear-gradient(110deg,#a47c2a,#dcc27a 30%,#c9a54e 55%,#e9d18f 75%,#a47c2a);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 9s linear infinite}
-@keyframes shine{to{background-position:220% center}}
-.clouds{position:fixed;inset:0;pointer-events:none;overflow:hidden}
-.cloud{position:absolute;left:-320px;width:220px;height:50px;background:#fff;border-radius:50px;filter:blur(2px) drop-shadow(0 8px 14px rgba(160,190,225,.3));animation:drift linear infinite}
-.cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
-.cloud:before{width:90px;height:90px;top:-42px;left:30px}.cloud:after{width:70px;height:70px;top:-28px;left:100px}
-@keyframes drift{to{transform:translateX(calc(100vw + 700px))}}
-.screen{position:relative;z-index:1;min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;text-align:center}
-.screen.on{display:flex;animation:in .9s ease}
-@keyframes in{from{opacity:0;transform:translateY(12px)}}
-.card{max-width:700px;padding:44px 36px 40px;background:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.3));border-radius:200px 200px 28px 28px/120px 120px 28px 28px;border:1px solid rgba(201,165,78,.35);box-shadow:0 20px 60px rgba(160,190,225,.25),inset 0 0 40px rgba(255,255,255,.8);backdrop-filter:blur(3px)}
-.cross{font-size:26px;letter-spacing:6px;margin-bottom:4px}
-.card h1{font-family:'Great Vibes',cursive;font-weight:400;font-size:clamp(42px,8vw,64px);margin-bottom:10px}
-.card p{font-family:'Great Vibes',cursive;font-size:clamp(21px,3.6vw,27px);line-height:1.5;margin-bottom:8px}
-.orn{width:120px;height:1px;margin:16px auto;background:linear-gradient(90deg,transparent,var(--g3),transparent)}
-.btn{font-family:'Great Vibes',cursive;font-size:26px;padding:6px 36px 8px;margin-top:20px;border:1px solid var(--g3);border-radius:50px;background:rgba(255,255,255,.6);color:var(--g1);cursor:pointer;transition:.35s;letter-spacing:.5px}
-.btn:hover{background:linear-gradient(#f6e7b4,#e9d18f);box-shadow:0 6px 22px rgba(201,165,78,.35);transform:translateY(-2px)}
-.modal{position:fixed;inset:0;z-index:10;background:rgba(255,255,255,.65);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center}
-.modal.on{display:flex}
-.box{background:rgba(255,255,255,.95);padding:30px 32px;border-radius:22px;border:1px solid rgba(201,165,78,.4);box-shadow:0 20px 50px rgba(120,100,60,.18);text-align:center;width:min(90vw,360px)}
-.box h2{font-family:'Great Vibes',cursive;font-size:36px;font-weight:400;margin-bottom:10px}
-.box input{width:100%;padding:10px;font-size:18px;border:0;border-bottom:1px solid var(--g3);background:transparent;text-align:center;outline:none;font-family:inherit;color:var(--g1)}
-.err{color:#b5605a;min-height:22px;margin:6px 0;font-size:17px}
-.x{display:block;margin:10px auto 0;background:none;border:0;color:#b09a62;cursor:pointer;font-size:16px;font-family:inherit}
-.shake{animation:sh .4s}@keyframes sh{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
-
-/* ===== KSIĘGA ===== */
-h2.t{font-family:'Great Vibes',cursive;font-size:clamp(34px,6vw,52px);font-weight:400;margin-bottom:26px}
-.bookwrap{display:flex;align-items:center;gap:18px;width:100%;justify-content:center}
-.arrow{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--g3);background:rgba(255,255,255,.7);color:var(--g1);font-size:26px;line-height:38px;cursor:pointer;transition:.3s}
-.arrow:hover:not(:disabled){background:#f3e4b0;transform:scale(1.08)}.arrow:disabled{opacity:.25;cursor:default}
-.book{position:relative;width:min(980px,calc(100vw - 150px));aspect-ratio:3/2;perspective:2600px}
-.cover{position:absolute;inset:-14px -16px -18px;border-radius:12px;background:linear-gradient(135deg,#f6efe0,#e9dcc0 50%,#f3ead6);border:1px solid rgba(164,124,42,.5);box-shadow:0 40px 70px rgba(100,85,50,.28),0 8px 14px rgba(100,85,50,.18),inset 0 0 0 5px rgba(255,255,255,.35),inset 0 0 0 6px rgba(201,165,78,.35)}
-.block{position:absolute;inset:0;border-radius:6px;box-shadow:0 1px 0 #fff,0 3px 0 #efe8d6,0 4px 0 #dcd3bd,0 6px 0 #f6f1e4,0 7px 0 #d9cfb6,0 9px 0 #f3ede0}
-.pages{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;transform-style:preserve-3d}
-.page{position:relative;background:var(--paper);display:flex;flex-direction:column;align-items:center;padding:7% 7% 4%;min-width:0;min-height:0;overflow:hidden}
-.page.l{border-radius:6px 0 0 6px;background:linear-gradient(90deg,#fffdf8 80%,#efe7d3)}
-.page.r{border-radius:0 6px 6px 0;background:linear-gradient(270deg,#fffdf8 80%,#efe7d3)}
-.page.l:after,.page.r:after{content:"";position:absolute;top:0;bottom:0;width:9%;pointer-events:none}
-.page.l:after{right:0;background:linear-gradient(270deg,rgba(90,70,30,.18),transparent)}
-.page.r:after{left:0;background:linear-gradient(90deg,rgba(90,70,30,.18),transparent)}
-.ph{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
-.ph img{max-width:100%;max-height:100%;object-fit:contain;background:#f1eee6;padding:6px;background:#fff;box-shadow:0 2px 3px rgba(0,0,0,.12),0 10px 24px rgba(90,70,30,.18);cursor:zoom-in}
-.foot{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:8px;font-size:15px;font-style:italic;color:#b79b57;height:24px;z-index:2}
-.foot a{color:var(--g1);text-decoration:none;border-bottom:1px solid rgba(201,165,78,.5);font-style:normal;font-size:16px;transition:.2s}
-.foot a:hover{color:#7d5c12;border-color:#7d5c12}
-.leaf{position:absolute;top:0;bottom:0;width:50%;transform-style:preserve-3d;transition:transform .95s cubic-bezier(.5,.05,.25,1);z-index:5}
-.leaf.r{left:50%;transform-origin:left center}.leaf.l{left:0;transform-origin:right center}
-.leaf.r.go{transform:rotateY(-180deg)}.leaf.l.go{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex}
-.face .page{flex:1}.face.back{transform:rotateY(180deg)}
-.leaf:before{content:"";position:absolute;inset:0;z-index:9;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.0),rgba(0,0,0,.12),rgba(0,0,0,0));opacity:0;transition:opacity .95s}
-.leaf.go:before{opacity:1}
-.count{margin-top:34px;font-size:19px;font-style:italic}
-.small{font-size:22px!important;padding:3px 24px 5px!important;margin-top:14px!important}
-.empty{grid-column:1/-1;display:flex;align-items:center;justify-content:center;background:var(--paper);border-radius:6px;font-family:'Great Vibes',cursive;font-size:30px}
-.light{position:fixed;inset:0;z-index:20;background:rgba(20,18,12,.9);display:none;align-items:center;justify-content:center}
-.light.on{display:flex}.light img{max-width:94vw;max-height:94vh}
-@media(max-width:760px){
- .book{width:calc(100vw - 110px);aspect-ratio:3/4.4}.bookwrap{gap:6px}.arrow{width:34px;height:34px;line-height:30px;font-size:22px}
- .pages{grid-template-columns:1fr}.pages .r,.leaf{display:none!important}.page.l{border-radius:6px;background:var(--paper)}.page.l:after{display:none}
- .fade{animation:in .5s}
-}
-</style>
-</head>
-<body>
-<div class="clouds" id="clouds"></div>
-
-<section class="screen on" id="home">
-  <div class="card">
-    <div class="cross gold">✦ ✝ ✦</div>
-    <h1 class="gold">Drodzy Goście!</h1>
-    <p class="gold">Chrzest Święty to pierwszy tak ważny krok w życiu naszego synka. Dziękujemy Wam z całego serca za to, że towarzyszyliście Tymonkowi w tak szczególnym momencie. Dziękujemy za obecność, życzenia, ciepłe słowa oraz piękny uśmiech.</p>
-    <p class="gold">Mamy nadzieję, że ten dzień pozostanie w Waszej pamięci równie piękny i wyjątkowy, jak w naszej.</p>
-    <div class="orn"></div>
-    <p class="gold">Z wyrazami wdzięczności,<br>Tymon z Rodzicami<br>08.11.2026 r.</p>
-    <button class="btn" id="open">Wspomnienia</button>
-  </div>
-</section>
-
-<section class="screen" id="album">
-  <h2 class="t gold">Wspomnienia z chrztu Tymona</h2>
-  <div class="bookwrap">
-    <button class="arrow" id="prev" aria-label="Poprzednie">‹</button>
-    <div class="book"><div class="cover"></div><div class="block"></div><div class="pages" id="pages"></div></div>
-    <button class="arrow" id="next" aria-label="Następne">›</button>
-  </div>
-  <div class="count gold" id="count"></div>
-  <button class="btn small" id="back">← Strona główna</button>
-</section>
-
-<div class="modal" id="modal"><div class="box" id="box">
-  <h2 class="gold">Podaj hasło</h2>
-  <input type="password" id="pw" placeholder="hasło" autocomplete="off">
-  <div class="err" id="err"></div>
-  <button class="btn small" id="ok">Wejdź</button>
-  <button class="x" id="cancel">Anuluj</button>
-</div></div>
-<div class="light" id="light"><img alt=""></div>
-
+body{font-family:Georgia,serif;background:#faf7f0;color:#6b5320;max-width:640px;margin:30px auto;padding:0 18px;line-height:1.5}
+h1{font-weight:400;font-size:28px;color:#a47c2a}
+.card{background:#fff;border:1px solid #e6d8b0;border-radius:14px;padding:20px;margin:16px 0;box-shadow:0 6px 20px rgba(120,100,60,.08)}
+label{display:block;margin:10px 0 4px;font-size:15px}
+input[type=password],input[type=text]{width:100%;padding:10px;border:1px solid #d9c487;border-radius:8px;font-size:16px}
+button,.dl{background:#f3e4b0;border:1px solid #c9a54e;color:#6b5320;padding:10px 22px;border-radius:30px;font-size:16px;cursor:pointer;text-decoration:none;display:inline-block;margin:8px 8px 0 0}
+button:disabled{opacity:.4}
+.warn{color:#a2492f;font-size:14px;margin-top:6px}.ok{color:#3c7a3c}
+#log{font-size:14px;margin-top:10px;white-space:pre-line}
+</style></head><body>
+<h1>Szyfrowanie zdjęć do albumu</h1>
+<p>Narzędzie działa wyłącznie w Twojej przeglądarce: zdjęcia i hasło <b>nie są nigdzie wysyłane</b>. Możesz je uruchomić z pliku na dysku.</p>
+<div class="card">
+  <label for="f">1. Wybierz zdjęcia (JPG, PNG, WEBP):</label>
+  <input type="file" id="f" accept="image/*" multiple>
+  <div id="info" class="warn"></div>
+  <label for="mode">2. Rozmiar zdjęć:</label>
+  <select id="mode" style="width:100%;padding:10px;border:1px solid #d9c487;border-radius:8px;font-size:16px">
+    <option value="resize">Zmniejsz do 3000 px, jakość 90% (zalecane, ok. 1–3 MB/zdjęcie)</option>
+    <option value="both">Podgląd 1800 px + oryginał do pobrania (bardzo duże pliki)</option>
+    <option value="orig">Tylko oryginały (nie polecane: wolne ładowanie)</option>
+  </select>
+  <div class="warn" style="color:#8a7a50">GitHub w przeglądarce nie przyjmie plików większych niż 25 MB, a cała strona nie powinna przekraczać ok. 1 GB.</div>
+  <label for="pw">3. Hasło do albumu (dla gości):</label>
+  <input type="text" id="pw" placeholder="np. trzy-cztery słowa i liczba" autocomplete="off">
+  <div id="strength" class="warn"></div>
+  <button id="go">4. Zaszyfruj</button>
+  <div id="log"></div><div id="out"></div>
+</div>
 <script>
-const $=id=>document.getElementById(id);
-let PHOTOS=[],KEY=null,idx=0,busy=false;
-const urls=new Map();
-
-for(let i=0;i<8;i++){const c=document.createElement('div');c.className='cloud';
-  c.style.cssText=`top:${Math.random()*85}%;transform:scale(${.5+Math.random()});animation-duration:${60+Math.random()*70}s;animation-delay:-${Math.random()*120}s;opacity:${.4+Math.random()*.4}`;
-  $('clouds').appendChild(c)}
-
 /*CORE*/
-async function deriveKey(pw,salt){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt'])}
-const dec=(buf,key)=>{const u=new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},key,u.slice(12))};
-async function unlock(pw){
-  const r=await fetch('album.enc',{cache:'no-store'});if(!r.ok)throw new Error('nofile');
-  const u=new Uint8Array(await r.arrayBuffer());
-  const key=await deriveKey(pw,u.slice(0,16));
-  const plain=await dec(u.slice(16),key);
-  PHOTOS=JSON.parse(new TextDecoder().decode(plain)).files;KEY=key}
+const ITER=250000;
+const cat=(...a)=>{const o=new Uint8Array(a.reduce((s,x)=>s+x.length,0));let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
+async function deriveKey(pw,salt,use){const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:ITER,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,use)}
+async function encBytes(key,buf){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,buf));return cat(iv,ct)}
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=~0;for(let i=0;i<u.length;i++)c=crcT[(c^u[i])&255]^(c>>>8);return ~c>>>0}
+function zip(files){
+  const en=new TextEncoder(),parts=[],cen=[];let off=0;
+  for(const f of files){const n=en.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,sz,true);h.setUint32(22,sz,true);h.setUint16(26,n.length,true);
+    parts.push(h,n,f.data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,sz,true);c.setUint32(24,sz,true);c.setUint16(28,n.length,true);c.setUint32(42,off,true);
+    cen.push(c,n);off+=30+n.length+sz}
+  let cs=0;cen.forEach(x=>cs+=x.byteLength);
+  const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,e],{type:'application/zip'})}
+async function encryptAll(pw,files,prep,progress,maxFiles=90,maxBytes=120e6){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const key=await deriveKey(pw,salt,['encrypt']);
+  const groups=[],manifest=[];let cur=[],size=0;
+  const flush=()=>{if(cur.length){groups.push(cur);cur=[];size=0}};
+  const add=(name,data)=>{if(cur.length>=maxFiles||size+data.length>maxBytes)flush();cur.push({name,data});size+=data.length};
+  for(let i=0;i<files.length;i++){
+    const r=await prep(files[i]);
+    const id=String(i+1).padStart(4,'0')+'.enc';
+    add('zdjecia/'+id,await encBytes(key,r.view));
+    const m={enc:id,name:r.name,type:r.vtype};
+    if(r.orig){const oid='o'+id;add('zdjecia/'+oid,await encBytes(key,r.orig));m.orig=oid;m.otype=r.otype}
+    manifest.push(m);progress&&progress(i+1,files.length)}
+  flush();
+  groups[0].push({name:'album.enc',data:cat(salt,await encBytes(key,new TextEncoder().encode(JSON.stringify({files:manifest}))))});
+  return groups.map(g=>zip(g))}
 /*END*/
 
-async function photoURL(i){
-  if(urls.has(i))return urls.get(i);
-  const p=PHOTOS[i],r=await fetch('zdjecia/'+p.enc);if(!r.ok)throw new Error('missing');
-  const b=await dec(await r.arrayBuffer(),KEY);
-  const u=URL.createObjectURL(new Blob([b],{type:p.type}));urls.set(i,u);
-  if(urls.size>12){const keep=new Set([idx,idx+1,idx+2,idx+3,i]);for(const [k,v] of urls){if(urls.size<=12)break;if(!keep.has(k)){URL.revokeObjectURL(v);urls.delete(k)}}}
-  return u}
-function hydrate(root){
-  root.querySelectorAll('img[data-i]').forEach(im=>{const i=+im.dataset.i;photoURL(i).then(u=>{im.onload=()=>im.style.opacity=1;im.src=u}).catch(()=>{im.alt='Nie udało się wczytać'})});
-  root.querySelectorAll('a[data-i]').forEach(a=>{const i=+a.dataset.i;photoURL(i).then(u=>{a.href=u;a.download=PHOTOS[i].name}).catch(()=>{})})}
-
-const show=id=>{document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));scrollTo(0,0)};
-$('open').onclick=()=>{if(KEY){show('album');render()}else{$('modal').classList.add('on');$('pw').value='';$('err').textContent='';$('pw').focus()}};
-$('cancel').onclick=()=>$('modal').classList.remove('on');
-async function check(){
-  const pw=$('pw').value.trim();if(!pw)return;
-  if(!window.crypto||!crypto.subtle){$('err').textContent='Otwórz stronę przez adres https://';return}
-  $('err').textContent='Sprawdzam…';$('ok').disabled=true;
-  try{await unlock(pw);$('modal').classList.remove('on');idx=0;show('album');render()}
-  catch(e){$('err').textContent=e.message==='nofile'?'Nie znaleziono albumu (brak pliku album.enc)':'Nieprawidłowe hasło';$('box').classList.remove('shake');void $('box').offsetWidth;$('box').classList.add('shake')}
-  $('ok').disabled=false}
-$('ok').onclick=check;$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')check()});
-$('back').onclick=()=>show('home');
-
-const mobile=()=>matchMedia('(max-width:760px)').matches;
-const step=()=>mobile()?1:2;
-function page(i,side){
-  if(!PHOTOS[i])return `<div class="page ${side}"></div>`;
-  return `<div class="page ${side}"><div class="ph"><img data-i="${i}" alt="Zdjęcie ${i+1}" style="opacity:0;transition:opacity .6s"></div><div class="foot"><span>${i+1}</span><a class="dl" data-i="${i}" href="#" onclick="if(this.getAttribute('href')==='#')return false">↓ pobierz zdjęcie</a></div></div>`}
-function bind(){$('pages').querySelectorAll('.ph img').forEach(im=>im.onclick=()=>{if(!im.src)return;$('light').querySelector('img').src=im.src;$('light').classList.add('on')})}
-function ui(){
-  const last=Math.min(idx+step(),PHOTOS.length);
-  $('count').textContent=PHOTOS.length?`${idx+1}${last>idx+1?' – '+last:''}  z  ${PHOTOS.length}`:'';
-  $('prev').disabled=idx<=0;$('next').disabled=idx+step()>=PHOTOS.length}
-function render(){
-  const p=$('pages');
-  if(!PHOTOS.length){p.innerHTML='<div class="empty gold">Brak zdjęć w albumie</div>';return}
-  p.innerHTML=page(idx,'l')+(mobile()?'':page(idx+1,'r'));
-  p.classList.remove('fade');if(mobile()){void p.offsetWidth;p.classList.add('fade')}
-  hydrate(p);bind();ui();
-  for(let k=2;k<4;k++)if(PHOTOS[idx+k])photoURL(idx+k).catch(()=>{})}
-function go(d){
-  const n=idx+d*step();
-  if(busy||n<0||n>=PHOTOS.length)return;
-  if(mobile()){idx=n;render();return}
-  busy=true;const p=$('pages'),leaf=document.createElement('div');
-  if(d>0){leaf.className='leaf r';leaf.innerHTML=`<div class="face">${page(idx+1,'r')}</div><div class="face back">${page(n,'l')}</div>`;p.children[1].outerHTML=page(n+1,'r')}
-  else{leaf.className='leaf l';leaf.innerHTML=`<div class="face">${page(idx,'l')}</div><div class="face back">${page(n+1,'r')}</div>`;p.children[0].outerHTML=page(n,'l')}
-  p.appendChild(leaf);hydrate(p);void leaf.offsetWidth;leaf.classList.add('go');
-  setTimeout(()=>{idx=n;render();busy=false},980)}
-$('next').onclick=()=>go(1);$('prev').onclick=()=>go(-1);
-$('light').onclick=()=>$('light').classList.remove('on');
-addEventListener('keydown',e=>{if(!$('album').classList.contains('on'))return;if(e.key==='ArrowRight')go(1);if(e.key==='ArrowLeft')go(-1);if(e.key==='Escape')$('light').classList.remove('on')});
-let tx=null;
-$('pages').addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
-$('pages').addEventListener('touchend',e=>{if(tx===null)return;const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)go(d<0?1:-1);tx=null});
-addEventListener('resize',()=>{if($('album').classList.contains('on')&&!busy){idx-=idx%step();render()}});
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id);
+$('f').onchange=()=>{const bad=[...$('f').files].filter(f=>!/^image\/(jpeg|png|webp|gif)$/.test(f.type));
+  $('info').textContent=`Wybrano: ${$('f').files.length}`+(bad.length?` – uwaga: ${bad.length} plik(ów) w formacie, którego przeglądarka może nie wyświetlić (np. HEIC). Zamień je na JPG.`:'')};
+$('pw').oninput=()=>{const l=$('pw').value.length;$('strength').textContent=l&&l<12?'Za krótkie. Użyj min. 12 znaków (np. kilka słów), bo hasło chroni zdjęcia przed łamaniem.':''};
+async function resizeJpg(file,max,q){
+  const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});
+  const s=Math.min(1,max/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');
+  c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);if(bmp.close)bmp.close();
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',q));return new Uint8Array(await blob.arrayBuffer())}
+const prepFor=mode=>async f=>{
+  try{
+    const base=f.name.replace(/\.[^.]+$/,'');
+    if(mode==='resize')return{view:await resizeJpg(f,3000,.9),vtype:'image/jpeg',name:base+'.jpg'};
+    if(mode==='both')return{view:await resizeJpg(f,1800,.82),vtype:'image/jpeg',orig:new Uint8Array(await f.arrayBuffer()),otype:f.type||'image/jpeg',name:f.name};
+    return{view:new Uint8Array(await f.arrayBuffer()),vtype:f.type||'image/jpeg',name:f.name};
+  }catch(e){throw new Error(`nie da się wczytać „${f.name}” (format nieobsługiwany? zamień na JPG)`)}};
+$('go').onclick=async()=>{
+  if(!window.crypto||!crypto.subtle){alert('Przeglądarka nie obsługuje szyfrowania. Otwórz plik w Chrome/Edge/Safari.');return}
+  const fs=[...$('f').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  const pw=$('pw').value;
+  if(!fs.length||!pw){alert('Wybierz zdjęcia i wpisz hasło.');return}
+  if(pw.length<12&&!confirm('Hasło jest krótkie i łatwiejsze do złamania. Kontynuować mimo to?'))return;
+  $('go').disabled=true;$('out').innerHTML='';
+  try{
+    const zips=await encryptAll(pw,fs,prepFor($('mode').value),(a,b)=>$('log').textContent=`Przetwarzam ${a} / ${b}…`);
+    $('log').innerHTML='<span class="ok">Gotowe!</span> Pobierz wszystkie paczki, rozpakuj je do jednego folderu i wgraj na GitHub (każdy plik musi mieć mniej niż 25 MB).';
+    zips.forEach((z,i)=>{const a=document.createElement('a');a.className='dl';a.href=URL.createObjectURL(z);a.download=`album-czesc-${i+1}.zip`;a.textContent=`↓ Paczka ${i+1} z ${zips.length}`;$('out').appendChild(a)});
+  }catch(e){$('log').innerHTML='<span class="warn">Błąd: '+e.message+'</span>'}
+  $('go').disabled=false};
+</script></body></html>
