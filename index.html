@@ -125,10 +125,30 @@ for (let i = 0; i < 8; i++) {
   c.style.cssText = `top:${Math.random()*85}%;transform:scale(${.5+Math.random()});animation-duration:${60+Math.random()*70}s;animation-delay:-${Math.random()*120}s;opacity:${.4+Math.random()*.4}`;
   $('clouds').appendChild(c);
 }
-async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function unlocked(){try{return sessionStorage.getItem('ok')==='1'}catch(e){return false}}
+function sha256js(str){
+  const m=new TextEncoder().encode(str),l=m.length,K=[],H=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];
+  for(let c=2,n=0;n<64;c++){let p=1;for(let d=2;d*d<=c;d++)if(c%d==0){p=0;break}if(p){K[n++]=(Math.cbrt(c)%1*4294967296)|0}}
+  const w=new Uint32Array((((l+9+63)>>6)<<4));
+  for(let i=0;i<l;i++)w[i>>2]|=m[i]<<(24-(i%4)*8);
+  w[l>>2]|=0x80<<(24-(l%4)*8);w[w.length-1]=l*8;
+  const r=(x,n)=>(x>>>n)|(x<<(32-n));
+  for(let o=0;o<w.length;o+=16){
+    const W=new Array(64);let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      if(i<16)W[i]=w[o+i];else{const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3),s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10);W[i]=(W[i-16]+s0+W[i-7]+s1)|0}
+      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])|0,t2=((r(a,2)^r(a,13)^r(a,22))+((a&b)^(a&c)^(b&c)))|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0}
+    H[0]=(H[0]+a)|0;H[1]=(H[1]+b)|0;H[2]=(H[2]+c)|0;H[3]=(H[3]+d)|0;H[4]=(H[4]+e)|0;H[5]=(H[5]+f)|0;H[6]=(H[6]+g)|0;H[7]=(H[7]+h)|0}
+  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('')
+}
+async function sha(t){
+  try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}
+  return sha256js(t)
+}
 const show = id => {document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));scrollTo(0,0)};
 $('open').onclick = () => {
-  if (sessionStorage.getItem('ok')==='1') {show('album');render()}
+  if (unlocked()) {show('album');render()}
   else {$('modal').classList.add('on');$('pw').value='';$('err').textContent='';$('pw').focus()}
 };
 $('cancel').onclick = () => $('modal').classList.remove('on');
